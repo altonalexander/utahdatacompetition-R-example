@@ -1,7 +1,7 @@
-    #setwd("C:/Users/aalexander/Documents/Personal/semi chalenge/bentaylorche-utahdatacompetition-6a72d3e97657")
+R Example Solution
+=======
 
-      library(knitr)
-      opts_knit$set(root.dir=normalizePath('bentaylorche-utahdatacompetition-6a72d3e97657/'))
+The following is example code for the competition posted at http://www.utahdatacompetition.com/challenge/
 
 Read the dataset from local working directory
 
