@@ -7,9 +7,9 @@ output: html_document
 
 
 ```{r}
-#setwd("C:/Users/aalexander/Documents/Personal/semi chalenge/bentaylorche-utahdatacompetition-6a72d3e97657")
+#setwd("/root/Documents/utahdatacompetition-com/bentaylorche-utahdatacompetition-6a72d3e97657/")
   library(knitr)
-  opts_knit$set(root.dir=normalizePath('bentaylorche-utahdatacompetition-6a72d3e97657/'))
+  opts_knit$set(root.dir=normalizePath('../bentaylorche-utahdatacompetition-6a72d3e97657/'))
 ```
 
 Read the dataset from local working directory
@@ -19,8 +19,6 @@ Read the dataset from local working directory
 x = read.csv("train_X.csv", header=F)
 y = t(read.csv("train_Y.csv", header=F)) # transpose into a column
 
-x_train = read.csv("train_X.csv", header=F)
-y_train = t(read.csv("train_Y.csv", header=F))
 ```
 
 Lets simply start by visualizing what is going on here
@@ -72,11 +70,105 @@ wafer_count = length(sim_yield_val)
 sim_yield_val_die_loss = 600 - sim_yield_val;
 
 #Special cost function, under prediction is 10x penalty
-err_LSR=yp_LSR-sim_yield_val_die_loss;              #Calculate errors
+err_LSR=(600-yp_LSR)-sim_yield_val_die_loss;              #Calculate errors
+
+# plot the error for each observation
+plot(err_LSR); abline(h=0)
 
 #Custom residual sum
 err_underpredict_LSR=abs(err_LSR[err_LSR<0])*10;        #10x penalty
 err_overpredict_LSR=abs(err_LSR[err_LSR>=0]);
+
+overall_score_LSR=(sum(err_underpredict_LSR)+sum(err_overpredict_LSR))/wafer_count
+
+# report the score
+overall_score_LSR
+```
+
+
+
+
+Score using the validation data
+-------
+
+
+```{r}
+
+# load validation test data
+x_val = read.csv("val_X.csv", header=F)
+y_val = t(read.csv("val_Y.csv", header=F))
+
+
+# apply prediction
+y_val.pred = predict(df.lm, newdata=data.frame(t(x_val)))
+
+# validate
+plot(y_val.pred, y_val)
+abline(0,1)
+```
+
+
+Apply the cost function.
+
+```{r}
+
+yp_LSR = y_val.pred
+sim_yield_val = y_val
+wafer_count = length(sim_yield_val)
+
+# look at loss
+sim_yield_val_die_loss = 600 - sim_yield_val;
+
+#Special cost function, under prediction is 10x penalty
+err_LSR=(600-yp_LSR) - sim_yield_val_die_loss+200;              #Calculate errors
+
+# plot the error for each observation
+plot(err_LSR); abline(h=0)
+
+#Custom residual sum
+err_underpredict_LSR = abs(err_LSR[err_LSR<0])*10;        #10x penalty
+err_overpredict_LSR = abs(err_LSR[err_LSR>=0]);
+
+overall_score_LSR=(sum(err_underpredict_LSR)+sum(err_overpredict_LSR))/wafer_count
+
+# report the score
+overall_score_LSR
+```
+
+
+
+Stupid penalty function
+-----
+
+Optimize for custom score penalty by adjusting the intercept
+
+
+Apply the cost function.
+
+```{r}
+adjust_intercept = 200
+
+yp_LSR = y_val.pred
+sim_yield_val = y_val + adjust_intercept
+
+# plot the new goodness of fit
+plot(yp_LSR, sim_yield_val); abline(0,1)
+
+
+wafer_count = length(sim_yield_val)
+
+# look at loss
+sim_yield_val_die_loss = 600 - sim_yield_val ;
+
+#Special cost function, under prediction is 10x penalty
+err_LSR=(600-yp_LSR) - sim_yield_val_die_loss;              #Calculate errors
+
+# plot the error for each observation
+plot(err_LSR); abline(h=0)
+
+#Custom residual sum
+err_underpredict_LSR = abs(err_LSR[err_LSR<0])*10;        #10x penalty
+err_overpredict_LSR = abs(err_LSR[err_LSR>=0]);
 
 overall_score_LSR=(sum(err_underpredict_LSR)+sum(err_overpredict_LSR))/wafer_count
 
