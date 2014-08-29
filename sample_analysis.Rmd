@@ -1,0 +1,85 @@
+---
+title: "R Sample Results"
+author: "Alton Alexander @10altoids"
+date: "Monday, August 25, 2014"
+output: html_document
+---
+
+
+```{r}
+#setwd("C:/Users/aalexander/Documents/Personal/semi chalenge/bentaylorche-utahdatacompetition-6a72d3e97657")
+  library(knitr)
+  opts_knit$set(root.dir=normalizePath('bentaylorche-utahdatacompetition-6a72d3e97657/'))
+```
+
+Read the dataset from local working directory
+
+```{r}
+# load the datasets
+x = read.csv("train_X.csv", header=F)
+y = t(read.csv("train_Y.csv", header=F)) # transpose into a column
+
+x_train = read.csv("train_X.csv", header=F)
+y_train = t(read.csv("train_Y.csv", header=F))
+```
+
+Lets simply start by visualizing what is going on here
+
+```{r}
+
+# yeild for each observation
+dim(y)
+plot(y/600, main="Yield for each observation")
+hist(y/600)
+
+# all the factors/attributes/contex/variables
+dim(x)
+image(head(t(x),200),xlab="Index (first 200)")
+```
+
+
+
+
+
+We are going to try a model.
+
+```{r}
+df = data.frame(t(x),y)
+
+# linear model
+df.lm = lm(y ~ ., data=df)
+
+summary(df.lm)
+
+# apply prediction
+y.pred = predict(df.lm)
+
+# validate
+plot(y.pred, y)
+abline(0,1)
+```
+
+
+Apply the cost function.
+
+```{r}
+
+yp_LSR = y.pred
+sim_yield_val = y
+wafer_count = length(sim_yield_val)
+
+# look at loss
+sim_yield_val_die_loss = 600 - sim_yield_val;
+
+#Special cost function, under prediction is 10x penalty
+err_LSR=yp_LSR-sim_yield_val_die_loss;              #Calculate errors
+
+#Custom residual sum
+err_underpredict_LSR=abs(err_LSR[err_LSR<0])*10;        #10x penalty
+err_overpredict_LSR=abs(err_LSR[err_LSR>=0]);
+
+overall_score_LSR=(sum(err_underpredict_LSR)+sum(err_overpredict_LSR))/wafer_count
+
+# report the score
+overall_score_LSR
+```
